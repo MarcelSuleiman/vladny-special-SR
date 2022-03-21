@@ -55,10 +55,7 @@ while True:
 				machine = subject.split(' ')[0]
 
 			if machine != '':
-				apikey = keys['apilayer_key']
-				screenshotlayer_key = keys['screenshotlayer_key']
-				url_map = keys['map']
-				screenshot.get_screenshot(apikey, screenshotlayer_key, machine, url_map)
+				screenshot.get_screenshot(machine)
 				
 				# preklad do SJ
 				deepl_api_key = keys['deepl_api_key']
