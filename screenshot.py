@@ -19,7 +19,10 @@ def get_universal_screenshot(machine_hex: str) -> None:
 		ak ma jeden v poradi volne requesty, ukonci sa skor
 		"""
 
-		url = 'http://api.screenshotlayer.com/api/capture?access_key=' + screenshotlayer_key + '&force=1&viewport=1440x987&url=' + url_map + machine_hex
+		url = 'http://api.screenshotlayer.com/api/capture?access_key=' + screenshotlayer_key \
+			+ '&force=1&viewport=1440x987&url=' \
+			+ url_map + machine_hex
+		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
 		print(img_data)
@@ -27,7 +30,10 @@ def get_universal_screenshot(machine_hex: str) -> None:
 			url_image = 'direct'
 			break
 
-		url = 'https://api.screenshotbird.com/screenshot?token=' + screenshotbird_key + '&browser_width=1440&browser_height=997&block_ads=true&fresh=true&url=' + url_map + machine_hex
+		url = 'https://api.screenshotbird.com/screenshot?token=' + screenshotbird_key \
+			+ '&browser_width=1440&browser_height=997&block_ads=true&fresh=true&url=' \
+			+ url_map + machine_hex
+		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
 		print(img_data)
@@ -35,7 +41,10 @@ def get_universal_screenshot(machine_hex: str) -> None:
 			url_image = 'url'
 			break
 
-		url = 'https://api.apiflash.com/v1/urltoimage?access_key=' + apiflash_key + '&width=1440&height=997&no_ads=true&no_tracking=true&fresh=true&response_type=json&url=' + url_map + machine_hex
+		url = 'https://api.apiflash.com/v1/urltoimage?access_key=' + apiflash_key \
+			+ '&width=1440&height=997&no_ads=true&no_tracking=true&fresh=true&response_type=json&url=' \
+			+ url_map + machine_hex
+		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
 		print(img_data)
@@ -43,7 +52,10 @@ def get_universal_screenshot(machine_hex: str) -> None:
 			url_image = 'url'
 			break
 
-		url = 'https://api.screenshotmachine.com/?key=' + screenshotmachine_key + '&device=desktop&format=png&dimension=1440x997&url=' + url_map + machine_hex
+		url = 'https://api.screenshotmachine.com/?key=' + screenshotmachine_key \
+			+ '&device=desktop&format=png&dimension=1440x997&url=' \
+			+ url_map + machine_hex
+		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
 		print(img_data)
