@@ -1,50 +1,68 @@
 import requests, json, crop_image
 
-def scr_apilayer(machine_hex: str , apikey: str, url_map: str) -> str:
-	"""
-	Funkcia sa aktualne nepouziva - nizky limit screenshotov
+def get_universal_screenshot(machine_hex: str) -> None:
+	with open('./keys/keys.json', 'r') as f:
+		keys = json.load(f)
 
-	funkcia prijma parametry:
-	machine_hex = hexadecimalne cislo sledovaneho lietadla,
-	screenshotlayer_key = api key ,
-	url_map = url mapy
+	screenshotlayer_key = keys['screenshotlayer_key']
+	screenshotbird_key = keys['screenshotbird_key']
+	apiflash_key = keys['apiflash_key']
+	screenshotmachine_key = keys['screenshotmachine_key']
 
-	funkcia vrati web odkaz na png subor so screenshotom
-	a) screenshot stiahnut a orezat
-	b) na orezanie vyuzit externu api sluzbu
+	url_map = keys['map']
 
-	"""
+	while True:
+		"""
+		Nekonecny cyklus prejde iba raz, je to iba akasi zaruka
+		ze sa vyskusaju vsetky verejne api na screenshot
+		
+		ak ma jeden v poradi volne requesty, ukonci sa skor
+		"""
 
-	
-	url = 'https://api.apilayer.com/screenshot?url=' + url_map.replace('&force=1', '') + machine_hex
+		url = 'http://api.screenshotlayer.com/api/capture?access_key=' + screenshotlayer_key + '&force=1&viewport=1440x987&url=' + url_map + machine_hex
+		img_data = requests.request("GET", url)
+		print(img_data.status_code)
+		print(img_data)
+		if img_data.status_code == 200:
+			url_image = 'direct'
+			break
 
-	payload = {}
-	headers= {
-		"apikey": apikey,
-	}
+		url = 'https://api.screenshotbird.com/screenshot?token=' + screenshotbird_key + '&browser_width=1440&browser_height=997&block_ads=true&fresh=true&url=' + url_map + machine_hex
+		img_data = requests.request("GET", url)
+		print(img_data.status_code)
+		print(img_data)
+		if img_data.status_code == 200:
+			url_image = 'url'
+			break
 
-	params = {
-		"height": "987",
-		"width": "1440"
-	}
+		url = 'https://api.apiflash.com/v1/urltoimage?access_key=' + apiflash_key + '&width=1440&height=997&no_ads=true&no_tracking=true&fresh=true&response_type=json&url=' + url_map + machine_hex
+		img_data = requests.request("GET", url)
+		print(img_data.status_code)
+		print(img_data)
+		if img_data.status_code == 200:
+			url_image = 'url'
+			break
 
-	response = requests.request("GET", url, params=params , headers=headers, data = payload)
-	return response
+		url = 'https://api.screenshotmachine.com/?key=' + screenshotmachine_key + '&device=desktop&format=png&dimension=1440x997&url=' + url_map + machine_hex
+		img_data = requests.request("GET", url)
+		print(img_data.status_code)
+		print(img_data)
+		if img_data.status_code == 200:
+			url_image = 'direct'
+			break
 
-def scr_screenshotlayer(machine_hex: str, screenshotlayer_key: str, url_map: str) -> None:
-	"""
-	funkcia prijma parametry:
-	machine_hex = hexadecimalne cislo sledovaneho lietadla,
-	screenshotlayer_key = api key ,
-	url_map = url mapy
+		break
 
-	Vytvori screenshot a oreze ho na pozadovanu velkost
-	"""
-	url = 'http://api.screenshotlayer.com/api/capture?access_key=' \
-	+ screenshotlayer_key \
-	+ url_map \
-	+ machine_hex \
-	+ '&viewport=1440x987'
+	if url_image != 'direct':
+		"""
+		ak api odpoveda stringom - odkazom na obrazok, vyextrahujeme link
+		ak vysledkom api je obrazok, extrakciu preskocime
+		"""
+		data = json.loads(img_data.text)
+		print(data)
+		
+		url = data[url_image]
+		print(url)
 
 	name = 'screenshot.png'
 
@@ -54,17 +72,14 @@ def scr_screenshotlayer(machine_hex: str, screenshotlayer_key: str, url_map: str
 
 	crop_image.crop(name)
 
-def get_screenshot(apikey: str, screenshotlayer_key: str, machine: str , url_map: str) -> None:
+def get_screenshot(machine: str) -> None:
 
 	"""
-	Povodna myslienka bola na zaklade udalosti rozhodnut, ktore api sa na screenshot pouzije
-	ale screenshotlayer ma mesacny free limit 100 a to by na tento projek mohlo stacit
+	DOC
 	"""
-
 	with open('./keys/machines.json', 'r') as f:
 		machine_dic = json.load(f)
 
-	machine_hex=machine_dic[machine]
+	machine_hex = machine_dic[machine]
 
-	response = scr_screenshotlayer(machine_hex, screenshotlayer_key, url_map)
-	#response = scr_apilayer(machine_hex, screenshotlayer_key, url_map)
+	get_universal_screenshot(machine_hex)
