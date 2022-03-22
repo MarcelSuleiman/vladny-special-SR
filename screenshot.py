@@ -26,7 +26,10 @@ def get_universal_screenshot(machine_hex: str) -> None:
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
 		print(img_data)
-		if img_data.status_code == 200:
+		
+		status = json.loads(img_data.text)
+
+		if img_data.status_code == 200 and status['success'] != False:
 			url_image = 'direct'
 			break
 
