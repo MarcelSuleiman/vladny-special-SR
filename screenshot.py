@@ -1,7 +1,7 @@
 import requests, json, crop_image
 from time import sleep
 
-def get_universal_screenshot(machine_hex):
+def get_universal_screenshot(machine_hex:str) -> None:
 	with open('./keys/keys.json', 'r') as f:
 		keys = json.load(f)
 
@@ -14,6 +14,12 @@ def get_universal_screenshot(machine_hex):
 	url_map = keys['map']
 
 	while True:
+		"""
+		Nekonecny cyklus prejde iba raz, je to iba akasi zaruka
+		ze sa vyskusaju vsetky verejne api na screenshot
+		
+		ak ma jeden v poradi volne requesty, ukonci sa skor
+		"""
 
 		url = 'http://api.screenshotlayer.com/api/capture?access_key=' + screenshotlayer_key \
 			+ '&force=1&viewport=1440x987&url=' + url_map + machine_hex
@@ -79,7 +85,7 @@ def get_universal_screenshot(machine_hex):
 
 	crop_image.crop(name)
 
-def get_screenshot(apikey: str, screenshotlayer_key: str, machine: str , url_map: str) -> None:
+def get_screenshot(machine: str) -> None:
 
 	"""
 	DOC
