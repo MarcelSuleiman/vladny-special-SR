@@ -1,6 +1,7 @@
 import requests, json, crop_image
+from time import sleep
 
-def get_universal_screenshot(machine_hex: str) -> None:
+def get_universal_screenshot(machine_hex):
 	with open('./keys/keys.json', 'r') as f:
 		keys = json.load(f)
 
@@ -8,34 +9,28 @@ def get_universal_screenshot(machine_hex: str) -> None:
 	screenshotbird_key = keys['screenshotbird_key']
 	apiflash_key = keys['apiflash_key']
 	screenshotmachine_key = keys['screenshotmachine_key']
+	apilayer_key = keys['apilayer_key']
 
 	url_map = keys['map']
 
 	while True:
-		"""
-		Nekonecny cyklus prejde iba raz, je to iba akasi zaruka
-		ze sa vyskusaju vsetky verejne api na screenshot
-		
-		ak ma jeden v poradi volne requesty, ukonci sa skor
-		"""
 
 		url = 'http://api.screenshotlayer.com/api/capture?access_key=' + screenshotlayer_key \
-			+ '&force=1&viewport=1440x987&url=' \
-			+ url_map + machine_hex
-		
+			+ '&force=1&viewport=1440x987&url=' + url_map + machine_hex
+
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
-		print(img_data)
-		
-		status = json.loads(img_data.text)
 
-		if img_data.status_code == 200 and status['success'] != False:
-			url_image = 'direct'
-			break
+		if img_data.status_code == 200:
+
+			if 'image' in img_data.headers['Content-Type']:
+				url_image = 'direct'
+				break
+			else:
+				print(img_data)
 
 		url = 'https://api.screenshotbird.com/screenshot?token=' + screenshotbird_key \
-			+ '&browser_width=1440&browser_height=997&block_ads=true&fresh=true&url=' \
-			+ url_map + machine_hex
+			+ '&browser_width=1440&browser_height=997&block_ads=true&fresh=true&url=' + url_map + machine_hex
 		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
@@ -45,8 +40,7 @@ def get_universal_screenshot(machine_hex: str) -> None:
 			break
 
 		url = 'https://api.apiflash.com/v1/urltoimage?access_key=' + apiflash_key \
-			+ '&width=1440&height=997&no_ads=true&no_tracking=true&fresh=true&response_type=json&url=' \
-			+ url_map + machine_hex
+			+ '&width=1440&height=997&no_ads=true&no_tracking=true&fresh=true&response_type=json&url=' + url_map + machine_hex
 		
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
@@ -56,23 +50,21 @@ def get_universal_screenshot(machine_hex: str) -> None:
 			break
 
 		url = 'https://api.screenshotmachine.com/?key=' + screenshotmachine_key \
-			+ '&device=desktop&format=png&dimension=1440x997&url=' \
-			+ url_map + machine_hex
-		
+			+ '&device=desktop&format=png&dimension=1440x997&url=' + url_map + machine_hex
 		img_data = requests.request("GET", url)
 		print(img_data.status_code)
-		print(img_data)
+
 		if img_data.status_code == 200:
-			url_image = 'direct'
-			break
+
+			if 'image' in img_data.headers['Content-Type']:
+				url_image = 'direct'
+				break
+			else:
+				print(img_data)
 
 		break
 
 	if url_image != 'direct':
-		"""
-		ak api odpoveda stringom - odkazom na obrazok, vyextrahujeme link
-		ak vysledkom api je obrazok, extrakciu preskocime
-		"""
 		data = json.loads(img_data.text)
 		print(data)
 		
@@ -87,7 +79,7 @@ def get_universal_screenshot(machine_hex: str) -> None:
 
 	crop_image.crop(name)
 
-def get_screenshot(machine: str) -> None:
+def get_screenshot(apikey: str, screenshotlayer_key: str, machine: str , url_map: str) -> None:
 
 	"""
 	DOC
