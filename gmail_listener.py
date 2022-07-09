@@ -1,63 +1,74 @@
-import imaplib, email
+from __future__ import print_function
 
-imap_url = 'imap.gmail.com'
+import os.path
 
-def get_body(raw):
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-	if raw.is_multipart():
-	
-		# prejdi cez jednotlive casti mailu
-		for part in raw.walk():
-			# vytiahni z mailu content type
-			content_type = part.get_content_type()
-			content_disposition = str(part.get("Content-Disposition"))
-			try:
-				# vytiahni telo mailu
-				body = part.get_payload(decode=True).decode()
-			except:
-				pass
-			if content_type == "text/plain" and "attachment" not in content_disposition:
-				# vrat text/plain mailu a preskoc prilohy
-				return body
-		#return get_body(raw.get_payload(0))
-	else:
-		return raw.get_payload(None,True)
+# If modifying these scopes, delete the file token.json.
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly',
+            'https://www.googleapis.com/auth/gmail.modify']
 
 
-def scarpe(user, password):
+def scarpe():
+    """
+    Returns all unread emails
+    """
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
 
-	con = imaplib.IMAP4_SSL(imap_url)
-	con.login(user, password)
-	con.select('INBOX')
+    try:
+        # Call the Gmail API
+        service = build('gmail', 'v1', credentials=creds)
+        results = service.users().messages().list(userId='me', labelIds=['UNREAD']).execute()
+        messages = results.get('messages', [])
+        all_msg_data = {}
 
-	resp, items = con.search(None, '(UNSEEN)') # UNSEEN MAIL
+        for message in messages:
+            one_msg_data = []
+            msg = service.users().messages().get(userId='me', id=message['id']).execute()
 
-	if items != [b'']:
+            payload = msg['payload']
+            headers = payload['headers']
+            for d in headers:
+                if d['name'] == 'Date':
+                    date = d['value']
 
-		a = items
-		b = a[0].decode('utf-8')
-		b = b.split(' ')
+                if d['name'] == 'From':
+                    sender = d['value']
 
-		mails = {}
+                if d['name'] == 'Subject':
+                    subject = d['value']
 
-		for value in b:
-			mail_data = []
+            mail_body = msg['snippet'].split('For more information visit')[0] # for my purpose - I don't need all content of email
 
-			result, data = con.fetch(value, '(RFC822)')
+            mail_key = subject
 
-			raw = email.message_from_bytes(data[0][1])
-			text = str(get_body(raw))
+            one_msg_data.append(date)
+            one_msg_data.append(sender)
+            one_msg_data.append(subject)
+            one_msg_data.append(msg['snippet'])
 
-			mail_key = str(value) + str(raw['From'])
+            all_msg_data[mail_key] = one_msg_data
 
-			mail_data.append(raw['Date'])
-			mail_data.append(raw['From'])
-			mail_data.append(raw['Subject'])
-			mail_data.append(text)
+            service.users().messages().modify(userId='me', id=message['id'], body={'removeLabelIds': ['UNREAD']}).execute()
 
-			mails[mail_key] = mail_data
+        return all_msg_data
 
-		return mails
-
-	else:
-		return {}
+    except HttpError as error:
+        print(f'An error occurred: {error}')
