@@ -21,7 +21,8 @@ while True:
 	# obcas sa stane ze prihlasenie je neuspesne
 	# tak nech sa to nezrube
 	try:
-		data = gmail_listener.scarpe(login, password)
+		# data = gmail_listener.scarpe(login, password) # Old
+		data = gmail_listener.scarpe()
 	except Exception as E:
 		print('Nepodarilo sa prihlasit, skusim znova...')
 		print(E.__class__.__name__, str(E))
