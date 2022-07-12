@@ -17,21 +17,17 @@ def translate(text: str, deepl_api_key: str) -> str:
 
 	try:
 		# Google version
-		
 		translator = Translator()
 		result = translator.translate(text, dest='sk', src='en').text
 
 		if result == text:
 			# # ak google translate neprelozi (prekroceny denny limit)
-			# # sprav chybu a skoc do except
-			print(non_exist_variable)
-
+			# # pouzi predkladac od DeepL
+			translator = deepl.Translator(auth_key=deepl_api_key)
+            result = str(translator.translate_text(text, target_lang="SK"))
+            return result
 		return result
 
-	except:
-
-		translator = deepl.Translator(auth_key=deepl_api_key)
-		result = str(translator.translate_text(text, target_lang="SK"))
-
-		return result
-		
+	except Exception as e:
+        
+        print(f'{e.__class__.__name__}: {str(e)}')
