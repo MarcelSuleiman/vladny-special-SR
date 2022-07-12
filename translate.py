@@ -29,5 +29,4 @@ def translate(text: str, deepl_api_key: str) -> str:
 		return result
 
 	except Exception as e:
-        
         print(f'{e.__class__.__name__}: {str(e)}')
